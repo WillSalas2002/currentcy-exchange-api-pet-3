@@ -1,13 +1,11 @@
 package com.will.currency.exchange.api.service.exchange;
 
+import com.will.currency.exchange.api.dto.ExchangeDTO;
 import com.will.currency.exchange.api.model.ExchangeRate;
 import com.will.currency.exchange.api.repository.ExchangeRateRepository;
-import com.will.currency.exchange.api.dto.CurrencyDTO;
-import com.will.currency.exchange.api.dto.ExchangeDTO;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.SQLException;
 import java.util.Optional;
 
 public class ReversedExchangeStrategy extends ExchangeStrategy {
@@ -17,8 +15,8 @@ public class ReversedExchangeStrategy extends ExchangeStrategy {
     }
 
     @Override
-    public Optional<ExchangeDTO> exchange(CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, BigDecimal amount) {
-        Optional<ExchangeRate> exchangeRateOptional = exchangeRateRepository.findByCurrencyCodes(targetCurrency.getCode(), baseCurrency.getCode());
+    public Optional<ExchangeDTO> exchange(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
+        Optional<ExchangeRate> exchangeRateOptional = exchangeRateRepository.findByCurrencyCodes(baseCurrencyCode, targetCurrencyCode);
         if (exchangeRateOptional.isPresent()) {
             ExchangeRate reversedExchangeRate = prepareExchangeRate(exchangeRateOptional.get());
             return Optional.of(calculateExchangeAmount(reversedExchangeRate, amount));
@@ -27,7 +25,7 @@ public class ReversedExchangeStrategy extends ExchangeStrategy {
     }
 
     private static ExchangeRate prepareExchangeRate(ExchangeRate exchangeRate) {
-        BigDecimal reversedRate = BigDecimal.ONE.divide(exchangeRate.getRate(),4, RoundingMode.HALF_EVEN);
+        BigDecimal reversedRate = BigDecimal.ONE.divide(exchangeRate.getRate(), 4, RoundingMode.HALF_EVEN);
         return ExchangeRate.builder()
                 .baseCurrency(exchangeRate.getTargetCurrency())
                 .targetCurrency(exchangeRate.getBaseCurrency())

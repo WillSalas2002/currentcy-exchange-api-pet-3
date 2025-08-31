@@ -1,12 +1,12 @@
 package com.will.currency.exchange.api.service;
 
+import com.will.currency.exchange.api.dto.request.CurrencyRequestDto;
+import com.will.currency.exchange.api.dto.response.CurrencyResponseDto;
 import com.will.currency.exchange.api.exception.NoSuchEntityException;
 import com.will.currency.exchange.api.mapper.CurrencyMapper;
 import com.will.currency.exchange.api.model.Currency;
 import com.will.currency.exchange.api.repository.CurrencyRepository;
-import com.will.currency.exchange.api.dto.CurrencyDTO;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class CurrencyService {
@@ -15,18 +15,18 @@ public class CurrencyService {
     private final CurrencyRepository repository = new CurrencyRepository();
     private final CurrencyMapper currencyMapper = CurrencyMapper.INSTANCE;
 
-    public List<CurrencyDTO> findAll() {
+    public List<CurrencyResponseDto> findAll() {
         return currencyMapper.toResponseList(repository.findAll());
     }
 
-    public CurrencyDTO findByCurrencyCode(String currencyCode) {
+    public CurrencyResponseDto findByCurrencyCode(String currencyCode) {
         return repository.findByCurrencyCode(currencyCode)
                 .map(currencyMapper::toResponse)
                 .orElseThrow(() -> new NoSuchEntityException(MESSAGE_NOT_FOUND));
     }
 
-    public CurrencyDTO save(CurrencyDTO currencyDTO) {
-        Currency currency = currencyMapper.toEntity(currencyDTO);
+    public CurrencyResponseDto save(CurrencyRequestDto currencyRequestDto) {
+        Currency currency = currencyMapper.fromCurrencyRequestToCurrency(currencyRequestDto);
         Currency savedCurrency = repository.save(currency);
         return currencyMapper.toResponse(savedCurrency);
     }

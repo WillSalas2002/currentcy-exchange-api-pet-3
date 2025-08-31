@@ -1,11 +1,9 @@
 package com.will.currency.exchange.api.service.exchange;
 
-import com.will.currency.exchange.api.repository.ExchangeRateRepository;
-import com.will.currency.exchange.api.dto.CurrencyDTO;
 import com.will.currency.exchange.api.dto.ExchangeDTO;
+import com.will.currency.exchange.api.repository.ExchangeRateRepository;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,9 +19,9 @@ public class ExchangeStrategyService {
         );
     }
 
-    public Optional<ExchangeDTO> exchange(CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, BigDecimal amount) {
+    public Optional<ExchangeDTO> exchange(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
         for (ExchangeStrategy exchangeStrategy : exchangeStrategies) {
-            Optional<ExchangeDTO> exchange = exchangeStrategy.exchange(baseCurrency, targetCurrency, amount);
+            Optional<ExchangeDTO> exchange = exchangeStrategy.exchange(baseCurrencyCode, targetCurrencyCode, amount);
             if (exchange.isPresent()) {
                 return exchange;
             }
