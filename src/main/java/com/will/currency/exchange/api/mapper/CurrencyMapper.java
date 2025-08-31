@@ -15,10 +15,12 @@ public interface CurrencyMapper {
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "code", target = "code")
+    @Mapping(source = "name", target = "fullName")
     Currency toEntity(CurrencyDTO currencyDTO);
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "code", target = "code")
+    @Mapping(source = "fullName", target = "name")
     CurrencyDTO toResponse(Currency currency);
 
     List<CurrencyDTO> toResponseList(List<Currency> currencies);
