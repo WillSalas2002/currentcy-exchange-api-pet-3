@@ -1,7 +1,7 @@
 package com.will.currency.exchange.api.mapper;
 
 import com.will.currency.exchange.api.model.ExchangeRate;
-import com.will.currency.exchange.api.response.ExchangeRateDTO;
+import com.will.currency.exchange.api.dto.ExchangeRateDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

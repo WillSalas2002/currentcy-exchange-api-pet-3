@@ -1,5 +1,6 @@
 package com.will.currency.exchange.api.repository;
 
+import com.will.currency.exchange.api.exception.DatabaseOperationException;
 import com.will.currency.exchange.api.exception.DuplicateEntityException;
 import com.will.currency.exchange.api.model.Currency;
 import com.will.currency.exchange.api.model.ExchangeRate;
@@ -14,13 +15,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.String.format;
+
 public class ExchangeRateRepository {
-    public static final String MESSAGE_UNIQUE_CONSTRAINT_VIOLATION = "Exchange Rate with these codes already exists";
-    private final String SAVE_SQL = """
+    private static final int UNIQUE_CONSTRAINT_VIOLATION_CODE = 19;
+    private static final String MESSAGE_UNIQUE_CONSTRAINT_VIOLATION = "Exchange Rate with these codes already exists";
+    private static final String SAVE_SQL = """
             INSERT INTO exchange_rate(base_currency_id, target_currency_id, rate)
             VALUES(?, ?, ?);
             """;
-    private final String FIND_ALL_SQL = """
+    private static final String FIND_ALL_SQL = """
             SELECT
                 er.id AS exchange_id,
                 bc.id AS base_id,
@@ -36,14 +40,14 @@ public class ExchangeRateRepository {
                 JOIN currency bc on bc.id = er.base_currency_id
                 JOIN currency tc on tc.id = er.target_currency_id
             """;
-    private final String FIND_ONE_SQL = FIND_ALL_SQL + " WHERE bc.code = ? AND tc.code = ?";
-    private final String UPDATE_SQL = """
+    private static final String FIND_ONE_SQL = FIND_ALL_SQL + " WHERE bc.code = ? AND tc.code = ?";
+    private static final String UPDATE_SQL = """
             UPDATE exchange_rate
             SET rate = ?
             WHERE id = ?;
             """;
 
-    public ExchangeRate save(ExchangeRate exchangeRate) throws SQLException {
+    public ExchangeRate save(ExchangeRate exchangeRate) {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setInt(1, exchangeRate.getBaseCurrency().getId());
@@ -57,14 +61,16 @@ public class ExchangeRateRepository {
             }
             return exchangeRate;
         } catch (SQLException err) {
-            if (err.getErrorCode() == 19) {
+            if (err.getErrorCode() == UNIQUE_CONSTRAINT_VIOLATION_CODE) {
                 throw new DuplicateEntityException(MESSAGE_UNIQUE_CONSTRAINT_VIOLATION, err);
+            } else {
+                throw new DatabaseOperationException(format("Failed to save exchange rate with currencies: %s and %s. %s",
+                        exchangeRate.getBaseCurrency().getCode(), exchangeRate.getTargetCurrency().getCode(), err.getMessage()));
             }
-            throw new SQLException(err);
         }
     }
 
-    public Optional<ExchangeRate> findByCurrencyCodes(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
+    public Optional<ExchangeRate> findByCurrencyCodes(String baseCurrencyCode, String targetCurrencyCode) {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_ONE_SQL)) {
             preparedStatement.setString(1, baseCurrencyCode);
@@ -75,10 +81,13 @@ public class ExchangeRateRepository {
                 exchangeRate = buildExchangeRate(resultSet);
             }
             return Optional.ofNullable(exchangeRate);
+        } catch (SQLException err) {
+            throw new DatabaseOperationException(format("Failed to get exchange rate with currencies: %s and %s. %s",
+                    baseCurrencyCode, targetCurrencyCode, err.getMessage()));
         }
     }
 
-    public List<ExchangeRate> findAll() throws SQLException {
+    public List<ExchangeRate> findAll() {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_SQL)) {
             List<ExchangeRate> exchangeRates = new ArrayList<>();
@@ -88,16 +97,21 @@ public class ExchangeRateRepository {
                 exchangeRates.add(exchangeRate);
             }
             return exchangeRates;
+        } catch (SQLException err) {
+            throw new DatabaseOperationException(format("Failed to get all exchange rates: %s", err.getMessage()));
         }
     }
 
-    public ExchangeRate update(ExchangeRate updatedExchangeRate) throws SQLException {
+    public ExchangeRate update(ExchangeRate updatedExchangeRate) {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setBigDecimal(1, updatedExchangeRate.getRate());
             preparedStatement.setInt(2, updatedExchangeRate.getId());
             preparedStatement.executeUpdate();
             return updatedExchangeRate;
+        } catch (SQLException err) {
+            throw new DatabaseOperationException(format("Failed to update exchange rate with id %s: %s",
+                    updatedExchangeRate.getId(), err.getMessage()));
         }
     }
 

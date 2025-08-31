@@ -2,8 +2,8 @@ package com.will.currency.exchange.api.service.exchange;
 
 import com.will.currency.exchange.api.model.ExchangeRate;
 import com.will.currency.exchange.api.repository.ExchangeRateRepository;
-import com.will.currency.exchange.api.response.CurrencyDTO;
-import com.will.currency.exchange.api.response.ExchangeDTO;
+import com.will.currency.exchange.api.dto.CurrencyDTO;
+import com.will.currency.exchange.api.dto.ExchangeDTO;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,7 +17,7 @@ public class ReversedExchangeStrategy extends ExchangeStrategy {
     }
 
     @Override
-    public Optional<ExchangeDTO> exchange(CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, BigDecimal amount) throws SQLException {
+    public Optional<ExchangeDTO> exchange(CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, BigDecimal amount) {
         Optional<ExchangeRate> exchangeRateOptional = exchangeRateRepository.findByCurrencyCodes(targetCurrency.getCode(), baseCurrency.getCode());
         if (exchangeRateOptional.isPresent()) {
             ExchangeRate reversedExchangeRate = prepareExchangeRate(exchangeRateOptional.get());

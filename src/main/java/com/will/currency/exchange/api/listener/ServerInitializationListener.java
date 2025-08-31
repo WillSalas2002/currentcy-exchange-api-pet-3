@@ -1,6 +1,6 @@
 package com.will.currency.exchange.api.listener;
 
-import com.will.currency.exchange.api.exception.DatabaseInitializationException;
+import com.will.currency.exchange.api.exception.DatabaseOperationException;
 import com.will.currency.exchange.api.util.ConnectionManager;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -16,6 +16,8 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import static java.lang.String.format;
 
 @Slf4j
 @WebListener
@@ -43,7 +45,7 @@ public class ServerInitializationListener implements ServletContextListener {
             statement.executeUpdate(tablePopulationSql);
         } catch (SQLException e) {
             log.error("Error during database table create and population");
-            throw new DatabaseInitializationException();
+            throw new DatabaseOperationException(format("Failed to initialize database: %s", e.getMessage()));
         }
     }
 

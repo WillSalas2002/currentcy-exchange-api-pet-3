@@ -1,4 +1,4 @@
-package com.will.currency.exchange.api.response;
+package com.will.currency.exchange.api.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

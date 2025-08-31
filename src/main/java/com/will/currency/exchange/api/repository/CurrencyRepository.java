@@ -1,5 +1,6 @@
 package com.will.currency.exchange.api.repository;
 
+import com.will.currency.exchange.api.exception.DatabaseOperationException;
 import com.will.currency.exchange.api.exception.DuplicateEntityException;
 import com.will.currency.exchange.api.model.Currency;
 import com.will.currency.exchange.api.util.ConnectionManager;
@@ -13,23 +14,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CurrencyRepository {
+import static java.lang.String.format;
 
-    private final String SAVE_SQL = """
+public class CurrencyRepository {
+    private static final int UNIQUE_CONSTRAINT_VIOLATION_CODE = 19;
+    private static final String SAVE_SQL = """
             INSERT INTO Currency(full_name, code, sign)
             VALUES(?, ?, ?);
             """;
-    private final String FIND_ONE_SQL = """
+    private static final String FIND_ONE_SQL = """
             SELECT id, full_name, code, sign
             FROM Currency
             WHERE code = ?;
             """;
-    private final String FIND_ALL_SQL = """
+    private static final String FIND_ALL_SQL = """
             SELECT id, full_name, code, sign
             FROM Currency;
             """;
 
-    public Currency save(Currency currency) throws SQLException {
+    public Currency save(Currency currency) {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, currency.getFullName());
@@ -43,14 +46,15 @@ public class CurrencyRepository {
             }
             return currency;
         } catch (SQLException err) {
-            if (err.getErrorCode() == 19) {
-                throw new DuplicateEntityException("Currency with this code already exists", err);
+            if (err.getErrorCode() == UNIQUE_CONSTRAINT_VIOLATION_CODE) {
+                throw new DuplicateEntityException(format("Currency with code %s already exists: %s", currency.getCode(), err.getMessage()), err);
+            } else {
+                throw new DatabaseOperationException(format("Failed to save currency %s: %s", currency.getCode(), err.getMessage()));
             }
-            throw new SQLException(err);
         }
     }
 
-    public Optional<Currency> findByCurrencyCode(String code) throws SQLException {
+    public Optional<Currency> findByCurrencyCode(String code)  {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_ONE_SQL)) {
             preparedStatement.setString(1, code);
@@ -59,11 +63,14 @@ public class CurrencyRepository {
             if (resultSet.next()) {
                 currency = buildCurrency(resultSet);
             }
+            resultSet.close();
             return Optional.ofNullable(currency);
+        } catch (SQLException err) {
+            throw new DatabaseOperationException(format("Failed to read currency %s: %s", code, err.getMessage()));
         }
     }
 
-    public List<Currency> findAll() throws SQLException {
+    public List<Currency> findAll() {
         try (Connection connection = ConnectionManager.get();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_SQL)) {
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -73,6 +80,8 @@ public class CurrencyRepository {
                 currencies.add(currency);
             }
             return currencies;
+        } catch (SQLException err) {
+            throw new DatabaseOperationException(format("Failed to get all currencies: %s", err.getMessage()));
         }
     }
 

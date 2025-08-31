@@ -2,6 +2,7 @@ package com.will.currency.exchange.api.util;
 
 import lombok.experimental.UtilityClass;
 
+import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.Locale;
@@ -42,7 +43,9 @@ public class Validation {
     }
 
     public static boolean isInvalidRate(String rate) {
-        return rate == null || !rate.matches("^\\d+(\\.\\d+)?$");
+        return rate == null ||
+                !rate.matches("^\\d+(\\.\\d+)?$") ||
+                new BigDecimal(rate).compareTo(BigDecimal.ZERO) <= 0;
     }
 
     public static boolean isValidExchangeRatePath(String path) {

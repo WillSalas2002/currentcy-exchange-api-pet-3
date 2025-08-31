@@ -2,8 +2,8 @@ package com.will.currency.exchange.api.service.exchange;
 
 import com.will.currency.exchange.api.model.ExchangeRate;
 import com.will.currency.exchange.api.repository.ExchangeRateRepository;
-import com.will.currency.exchange.api.response.CurrencyDTO;
-import com.will.currency.exchange.api.response.ExchangeDTO;
+import com.will.currency.exchange.api.dto.CurrencyDTO;
+import com.will.currency.exchange.api.dto.ExchangeDTO;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -16,7 +16,7 @@ public class DirectExchangeService extends ExchangeStrategy {
     }
 
     @Override
-    public Optional<ExchangeDTO> exchange(CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, BigDecimal amount) throws SQLException {
+    public Optional<ExchangeDTO> exchange(CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, BigDecimal amount) {
         Optional<ExchangeRate> exchangeRate = exchangeRateRepository.findByCurrencyCodes(baseCurrency.getCode(), targetCurrency.getCode());
         return exchangeRate.map(rate -> calculateExchangeAmount(rate, amount));
     }

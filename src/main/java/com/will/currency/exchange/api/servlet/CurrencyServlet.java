@@ -1,9 +1,10 @@
 package com.will.currency.exchange.api.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.will.currency.exchange.api.exception.DatabaseOperationException;
 import com.will.currency.exchange.api.exception.NoSuchEntityException;
-import com.will.currency.exchange.api.response.CurrencyDTO;
-import com.will.currency.exchange.api.response.ErrorDTO;
+import com.will.currency.exchange.api.dto.CurrencyDTO;
+import com.will.currency.exchange.api.dto.ErrorResponseDto;
 import com.will.currency.exchange.api.service.CurrencyService;
 import com.will.currency.exchange.api.util.Validation;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,13 +38,13 @@ public class CurrencyServlet extends HttpServlet {
             objectMapper.writeValue(resp.getWriter(), currencyDTO);
         } catch (NoSuchEntityException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_NOT_FOUND, err.getMessage());
-        } catch (SQLException err) {
+        } catch (DatabaseOperationException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_BAD_REQUEST, MESSAGE_INTERNAL_SERVER_ERROR);
         }
     }
 
     private void sendErrorResponse(HttpServletResponse resp, int statusCode, String errorMessage) throws IOException {
         resp.setStatus(statusCode);
-        objectMapper.writeValue(resp.getWriter(), new ErrorDTO(errorMessage));
+        objectMapper.writeValue(resp.getWriter(), new ErrorResponseDto(errorMessage));
     }
 }

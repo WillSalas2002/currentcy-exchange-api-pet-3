@@ -1,11 +1,12 @@
 package com.will.currency.exchange.api.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.will.currency.exchange.api.exception.BadRequest;
+import com.will.currency.exchange.api.exception.BadRequestException;
+import com.will.currency.exchange.api.exception.DatabaseOperationException;
 import com.will.currency.exchange.api.exception.NoSuchEntityException;
-import com.will.currency.exchange.api.response.CurrencyDTO;
-import com.will.currency.exchange.api.response.ErrorDTO;
-import com.will.currency.exchange.api.response.ExchangeDTO;
+import com.will.currency.exchange.api.dto.CurrencyDTO;
+import com.will.currency.exchange.api.dto.ErrorResponseDto;
+import com.will.currency.exchange.api.dto.ExchangeDTO;
 import com.will.currency.exchange.api.service.CurrencyService;
 import com.will.currency.exchange.api.service.exchange.ExchangeStrategyService;
 import com.will.currency.exchange.api.util.Validation;
@@ -67,17 +68,17 @@ public class ExchangeServlet extends HttpServlet {
             } else {
                 sendErrorResponse(resp, HttpServletResponse.SC_NOT_FOUND, "Couldn't convert");
             }
-        } catch (BadRequest err) {
+        } catch (BadRequestException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_BAD_REQUEST, err.getMessage());
         } catch (NoSuchEntityException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_NOT_FOUND, err.getMessage());
-        } catch (SQLException e) {
+        } catch (DatabaseOperationException e) {
             sendErrorResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MESSAGE_INTERNAL_SERVER_ERROR);
         }
     }
 
     private void sendErrorResponse(HttpServletResponse resp, int statusCode, String messageInternalServerError) throws IOException {
         resp.setStatus(statusCode);
-        objectMapper.writeValue(resp.getWriter(), new ErrorDTO(messageInternalServerError));
+        objectMapper.writeValue(resp.getWriter(), new ErrorResponseDto(messageInternalServerError));
     }
 }

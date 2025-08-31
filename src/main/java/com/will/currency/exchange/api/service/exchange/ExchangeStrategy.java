@@ -2,8 +2,8 @@ package com.will.currency.exchange.api.service.exchange;
 
 import com.will.currency.exchange.api.model.ExchangeRate;
 import com.will.currency.exchange.api.repository.ExchangeRateRepository;
-import com.will.currency.exchange.api.response.CurrencyDTO;
-import com.will.currency.exchange.api.response.ExchangeDTO;
+import com.will.currency.exchange.api.dto.CurrencyDTO;
+import com.will.currency.exchange.api.dto.ExchangeDTO;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,7 +17,7 @@ public abstract class ExchangeStrategy {
         this.exchangeRateRepository = exchangeRateRepository;
     }
 
-    protected abstract Optional<ExchangeDTO> exchange(CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, BigDecimal amount) throws SQLException;
+    protected abstract Optional<ExchangeDTO> exchange(CurrencyDTO baseCurrency, CurrencyDTO targetCurrency, BigDecimal amount);
 
     protected ExchangeDTO calculateExchangeAmount(ExchangeRate exchangeRate, BigDecimal amount) {
         BigDecimal convertedAmount = exchangeRate.getRate().multiply(amount).setScale(2, RoundingMode.HALF_EVEN);

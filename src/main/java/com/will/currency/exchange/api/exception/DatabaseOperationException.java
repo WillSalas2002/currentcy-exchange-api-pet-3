@@ -1,12 +1,8 @@
 package com.will.currency.exchange.api.exception;
 
-import lombok.Getter;
-
-@Getter
-public class BadRequest extends RuntimeException {
+public class DatabaseOperationException extends RuntimeException {
     private final String message;
-
-    public BadRequest(String message) {
+    public DatabaseOperationException(String message) {
         super(message);
         this.message = message;
     }

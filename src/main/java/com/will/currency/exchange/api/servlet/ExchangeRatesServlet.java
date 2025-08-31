@@ -1,11 +1,12 @@
 package com.will.currency.exchange.api.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.will.currency.exchange.api.exception.DatabaseOperationException;
 import com.will.currency.exchange.api.exception.DuplicateEntityException;
 import com.will.currency.exchange.api.exception.NoSuchEntityException;
-import com.will.currency.exchange.api.response.CurrencyDTO;
-import com.will.currency.exchange.api.response.ErrorDTO;
-import com.will.currency.exchange.api.response.ExchangeRateDTO;
+import com.will.currency.exchange.api.dto.CurrencyDTO;
+import com.will.currency.exchange.api.dto.ErrorResponseDto;
+import com.will.currency.exchange.api.dto.ExchangeRateDTO;
 import com.will.currency.exchange.api.service.CurrencyService;
 import com.will.currency.exchange.api.service.ExchangeRateService;
 import com.will.currency.exchange.api.util.Validation;
@@ -39,7 +40,7 @@ public class ExchangeRatesServlet extends HttpServlet {
             List<ExchangeRateDTO> exchangeRates = exchangeRateService.findAll();
             resp.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(resp.getWriter(), exchangeRates);
-        } catch (SQLException err) {
+        } catch (DatabaseOperationException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MESSAGE_INTERNAL_SERVER_ERROR);
         }
     }
@@ -82,13 +83,13 @@ public class ExchangeRatesServlet extends HttpServlet {
             sendErrorResponse(resp, HttpServletResponse.SC_NOT_FOUND, err.getMessage());
         } catch (DuplicateEntityException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_CONFLICT, err.getMessage());
-        } catch (SQLException err) {
+        } catch (DatabaseOperationException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MESSAGE_INTERNAL_SERVER_ERROR);
         }
     }
 
     private void sendErrorResponse(HttpServletResponse resp, int statusCode, String err) throws IOException {
         resp.setStatus(statusCode);
-        objectMapper.writeValue(resp.getWriter(), new ErrorDTO(err));
+        objectMapper.writeValue(resp.getWriter(), new ErrorResponseDto(err));
     }
 }

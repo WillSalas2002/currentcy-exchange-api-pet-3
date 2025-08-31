@@ -1,9 +1,10 @@
 package com.will.currency.exchange.api.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.will.currency.exchange.api.exception.DatabaseOperationException;
 import com.will.currency.exchange.api.exception.NoSuchEntityException;
-import com.will.currency.exchange.api.response.ErrorDTO;
-import com.will.currency.exchange.api.response.ExchangeRateDTO;
+import com.will.currency.exchange.api.dto.ErrorResponseDto;
+import com.will.currency.exchange.api.dto.ExchangeRateDTO;
 import com.will.currency.exchange.api.service.ExchangeRateService;
 import com.will.currency.exchange.api.util.Validation;
 import jakarta.servlet.ServletException;
@@ -66,7 +67,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
         } catch (NoSuchEntityException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_NOT_FOUND, err.getMessage());
-        } catch (SQLException err) {
+        } catch (DatabaseOperationException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, MESSAGE_INTERNAL_SERVER_ERROR);
         }
     }
@@ -102,14 +103,14 @@ public class ExchangeRateServlet extends HttpServlet {
             objectMapper.writeValue(resp.getWriter(), updatedExchangeRate);
         } catch (NoSuchEntityException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_NOT_FOUND, err.getMessage());
-        } catch (SQLException err) {
+        } catch (DatabaseOperationException err) {
             sendErrorResponse(resp, HttpServletResponse.SC_NOT_FOUND, MESSAGE_INTERNAL_SERVER_ERROR);
         }
     }
 
     private void sendErrorResponse(HttpServletResponse resp, int statusCode, String errorMessage) throws IOException {
         resp.setStatus(statusCode);
-        objectMapper.writeValue(resp.getWriter(), new ErrorDTO(errorMessage));
+        objectMapper.writeValue(resp.getWriter(), new ErrorResponseDto(errorMessage));
     }
 
     private Optional<String> getRateParameter(HttpServletRequest req) {
